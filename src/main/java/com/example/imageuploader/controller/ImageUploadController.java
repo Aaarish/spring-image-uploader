@@ -1,5 +1,7 @@
 package com.example.imageuploader.controller;
 
+import com.example.imageuploader.helper.ImageUploadHelper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,9 +11,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/api/v1/images")
+@RequiredArgsConstructor
 public class ImageUploadController {
+    private final ImageUploadHelper helper;
 
     @PostMapping("/upload")
     public ResponseEntity<String> addImage(@RequestParam("img") MultipartFile file){
@@ -24,6 +30,16 @@ public class ImageUploadController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Only jpeg files are accepted");
         }
 
-        return ResponseEntity.ok("Working fine");
+        try {
+            boolean b = helper.uploadImage(file);
+
+            if(b){
+                return ResponseEntity.ok("Working fine");
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Something went wrong.\n Try again");
     }
 }
